@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Runtime.InteropServices.WindowsRuntime;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
@@ -12,70 +13,69 @@ namespace WebAPIDemo.Controllers
     [ApiController]
     public class PersonController : ControllerBase
     {
-        List<Person> Persons = new List<Person>() {
-            new Person() {
-                ID=1,
-                Name="Dara",
-                EmailAddress="me@dara.com",
-                Phone="12233245",
-                Address=new Address(){
-                    State="Oyo",
-                    Country="Nigeria",
-                    PostCode="101525",
-                    StreetName="Olaogun",
-                    StreetNumber=4
-                }
-            },
-            new Person() {
-                ID=2,
-                Name="Oluwadara",
-                EmailAddress="me@dara.com",
-                Phone="78674552",
-                Address=new Address(){
-                    State="Lagos",
-                    Country="Nigeria",
-                    PostCode="101244",
-                    StreetName="Olaogun",
-                    StreetNumber=4
-                }
-            } };
-
-        [HttpGet("getallpeople")]
-        public ActionResult<List<Person>> GetAllPeople()
+        public PersonController()
         {
-            return Persons;
+
         }
-        [HttpGet("getperson/{ID}")]
+        [HttpGet("get-all")]
+        public ActionResult<IEnumerable<Person>> GetAllPersons()
+        {
+            var Persons = Person.GetPeople();
+            return Ok(Persons);
+        }
+        [HttpGet("get-person/{ID}")]
         public ActionResult<Person> GetPerson(int ID)
         {
-            var Person = Persons.FirstOrDefault(opt => opt.ID == ID);
-            return Person;
+            var _Person = Person.GetPeople().FirstOrDefault(opt => opt.ID == ID);
+            if (_Person != null)
+                return Ok(_Person);
+            else
+                return NotFound();
         }
+
         [HttpPost("createperson")]
-        public ActionResult<Person> CreatePerson([FromBody] Person Person)
+        public ActionResult<Person> CreatePerson([FromBody] AddPersonBindingModel BindingModel)
         {
-            return Person;
-        }
-        [HttpDelete("delete/{ID}")]
-        public ActionResult DeletePerson(int ID)
-        {
-            var Person = Persons.FirstOrDefault(opt => opt.ID == ID);
-            if (Person != null)
+            var PersonToCreate = new Person()
             {
-                Persons.Remove(Person);
-                return NoContent();
+                ID = Person.GetPeople().ToList().Count + 1,
+                Name = BindingModel.Name,
+                Address = BindingModel.Address,
+                EmailAddress = BindingModel.EmailAddress,
+                Phone = BindingModel.Phone
+            };
+            //TODO: Use ORM to save info
+            return Ok(PersonToCreate);
+        }
+        [HttpPut("modify/{ID}")]
+        public ActionResult<Person> ModifyPerson(int ID, [FromBody] ModifyPersonBindingModel BindingModel)
+        {
+            var _Person = Person.GetPeople().FirstOrDefault(opt => opt.ID == ID);
+            if (_Person != null)
+            {
+
+                _Person.Name = BindingModel.Name;
+                _Person.Phone = BindingModel.Phone;
+                _Person.EmailAddress = BindingModel.EmailAddress;
+                _Person.Address = BindingModel.Address;
+
+                //TODO: Use ORM to save info
+                return Ok(_Person);
             }
             else
             {
                 return NotFound();
             }
         }
-        [HttpPut("changeinfo")]
-        public ActionResult ModifyPerson([FromBody] Person Person)
+        [HttpDelete("delete/{ID}")]
+        public ActionResult Delete(int ID)
         {
-            var PersonToFind = Persons.FirstOrDefault(opt => opt.ID == Person.ID);
-            PersonToFind = Person;
-            return Ok("Modified");
+            var _Person = Person.GetPeople().FirstOrDefault(opt => opt.ID == ID);
+            //TODO: Use ORM to remove person from list
+            if (_Person != null)
+                return NoContent();
+            else
+                return NotFound();
         }
     }
 }
