@@ -5,6 +5,7 @@ using System.Runtime.InteropServices.WindowsRuntime;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using WebAPIDemo.Data;
 using WebAPIDemo.Model;
 
 namespace WebAPIDemo.Controllers
@@ -13,9 +14,10 @@ namespace WebAPIDemo.Controllers
     [ApiController]
     public class PersonController : ControllerBase
     {
-        public PersonController()
+        private ApplicationDbContext _ApplicationDbContext;
+        public PersonController(ApplicationDbContext dbContext)
         {
-
+            _ApplicationDbContext = dbContext;
         }
         [HttpGet("get-all")]
         public ActionResult<IEnumerable<Person>> GetAllPersons()
@@ -38,15 +40,18 @@ namespace WebAPIDemo.Controllers
         [HttpPost("createperson")]
         public ActionResult<Person> CreatePerson([FromBody] AddPersonBindingModel BindingModel)
         {
+            //check existing data before creating
             var PersonToCreate = new Person()
             {
-                ID = Person.GetPeople().ToList().Count + 1,
                 Name = BindingModel.Name,
                 Address = BindingModel.Address,
                 EmailAddress = BindingModel.EmailAddress,
-                Phone = BindingModel.Phone
+                Phone = BindingModel.Phone,
+                CreatedDate = DateTime.Now,
+                IsActive = true
             };
-            //TODO: Use ORM to save info
+            _ApplicationDbContext.Persons.Add(PersonToCreate);
+            _ApplicationDbContext.SaveChanges();
             return Ok(PersonToCreate);
         }
         [HttpPut("modify/{ID}")]
@@ -55,7 +60,6 @@ namespace WebAPIDemo.Controllers
             var _Person = Person.GetPeople().FirstOrDefault(opt => opt.ID == ID);
             if (_Person != null)
             {
-
                 _Person.Name = BindingModel.Name;
                 _Person.Phone = BindingModel.Phone;
                 _Person.EmailAddress = BindingModel.EmailAddress;
