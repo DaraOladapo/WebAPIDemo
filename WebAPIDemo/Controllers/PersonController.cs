@@ -20,6 +20,8 @@ namespace WebAPIDemo.Controllers
         [HttpGet("get-all")]
         public ActionResult<IEnumerable<Person>> GetAllPersons()
         {
+
+            //TODO: Get from DB
             var Persons = Person.GetPeople();
             return Ok(Persons);
         }
