@@ -23,14 +23,13 @@ namespace WebAPIDemo.Controllers
         public ActionResult<IEnumerable<Person>> GetAllPersons()
         {
 
-            //TODO: Get from DB
-            var Persons = Person.GetPeople();
-            return Ok(Persons);
+            var _Persons=_ApplicationDbContext.Persons.ToList();
+            return Ok(_Persons);
         }
         [HttpGet("get-person/{ID}")]
         public ActionResult<Person> GetPerson(int ID)
         {
-            var _Person = Person.GetPeople().FirstOrDefault(opt => opt.ID == ID);
+            var _Person=_ApplicationDbContext.Persons.FirstOrDefault(opt => opt.ID == ID);
             if (_Person != null)
                 return Ok(_Person);
             else
@@ -39,7 +38,10 @@ namespace WebAPIDemo.Controllers
 
         [HttpPost("createperson")]
         public ActionResult<Person> CreatePerson([FromBody] AddPersonBindingModel BindingModel)
-        {
+        { 
+            var _Person=_ApplicationDbContext.Persons.FirstOrDefault(opt => opt.EmailAddress == BindingModel.EmailAddress);
+            if (_Person != null)
+                return Conflict();
             //check existing data before creating
             var PersonToCreate = new Person()
             {
@@ -52,20 +54,20 @@ namespace WebAPIDemo.Controllers
             };
             _ApplicationDbContext.Persons.Add(PersonToCreate);
             _ApplicationDbContext.SaveChanges();
-            return Ok(PersonToCreate);
+            return Created($"/get-person/{PersonToCreate.ID}", PersonToCreate);
+            //return Ok(PersonToCreate);
         }
         [HttpPut("modify/{ID}")]
         public ActionResult<Person> ModifyPerson(int ID, [FromBody] ModifyPersonBindingModel BindingModel)
         {
-            var _Person = Person.GetPeople().FirstOrDefault(opt => opt.ID == ID);
+            var _Person = _ApplicationDbContext.Persons.FirstOrDefault(opt => opt.ID == ID);
             if (_Person != null)
             {
                 _Person.Name = BindingModel.Name;
                 _Person.Phone = BindingModel.Phone;
                 _Person.EmailAddress = BindingModel.EmailAddress;
                 _Person.Address = BindingModel.Address;
-
-                //TODO: Use ORM to save info
+                _ApplicationDbContext.SaveChanges();
                 return Ok(_Person);
             }
             else
@@ -76,10 +78,12 @@ namespace WebAPIDemo.Controllers
         [HttpDelete("delete/{ID}")]
         public ActionResult Delete(int ID)
         {
-            var _Person = Person.GetPeople().FirstOrDefault(opt => opt.ID == ID);
-            //TODO: Use ORM to remove person from list
-            if (_Person != null)
+            var _Person = _ApplicationDbContext.Persons.FirstOrDefault(opt => opt.ID == ID);
+            if (_Person != null){
+                _ApplicationDbContext.Persons.Remove(_Person);
+                _ApplicationDbContext.SaveChanges();
                 return NoContent();
+            }
             else
                 return NotFound();
         }
