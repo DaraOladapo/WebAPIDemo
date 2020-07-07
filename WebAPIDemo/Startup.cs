@@ -29,11 +29,12 @@ namespace WebAPIDemo
         {
             services.AddDbContext<ApplicationDbContext>(
                 option => option.UseSqlServer(Configuration.GetConnectionString("DefaultConnection")));
+            services.AddScoped<IRepository, Repository<ApplicationDbContext>>();
             services.AddControllers();
         }
 
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
-        public void Configure(IApplicationBuilder app, IWebHostEnvironment env)
+        public void Configure(IApplicationBuilder app, IWebHostEnvironment env, ApplicationDbContext dbContext)
         {
             if (env.IsDevelopment())
             {
@@ -43,6 +44,8 @@ namespace WebAPIDemo
             app.UseHttpsRedirection();
 
             app.UseRouting();
+
+            dbContext.Database.Migrate();
 
             app.UseAuthorization();
 
