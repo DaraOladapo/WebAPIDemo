@@ -15,21 +15,23 @@ namespace WebAPIDemo.Controllers
     public class PersonController : ControllerBase
     {
         private ApplicationDbContext _ApplicationDbContext;
-        public PersonController(ApplicationDbContext dbContext)
+        private readonly IRepository _Repository;
+        public PersonController(ApplicationDbContext dbContext, IRepository repository)
         {
             _ApplicationDbContext = dbContext;
+            _Repository=repository;
         }
         [HttpGet("get-all")]
-        public ActionResult<IEnumerable<Person>> GetAllPersons()
+        public async Task<ActionResult<IEnumerable<Person>>> GetAllPersons()
         {
 
-            var _Persons=_ApplicationDbContext.Persons.ToList();
+            var _Persons= await _Repository.FindAll<Person>();
             return Ok(_Persons);
         }
         [HttpGet("get-person/{ID}")]
-        public ActionResult<Person> GetPerson(int ID)
+        public async Task<ActionResult<Person>> GetPerson(int ID)
         {
-            var _Person=_ApplicationDbContext.Persons.FirstOrDefault(opt => opt.ID == ID);
+            var _Person=await _Repository.FindById<Person>(ID);
             if (_Person != null)
                 return Ok(_Person);
             else
@@ -37,7 +39,7 @@ namespace WebAPIDemo.Controllers
         }
 
         [HttpPost("createperson")]
-        public ActionResult<Person> CreatePerson([FromBody] AddPersonBindingModel BindingModel)
+        public async Task<ActionResult<Person>> CreatePerson([FromBody] AddPersonBindingModel BindingModel)
         { 
             var _Person=_ApplicationDbContext.Persons.FirstOrDefault(opt => opt.EmailAddress == BindingModel.EmailAddress);
             if (_Person != null)
@@ -52,13 +54,12 @@ namespace WebAPIDemo.Controllers
                 CreatedDate = DateTime.Now,
                 IsActive = true
             };
-            _ApplicationDbContext.Persons.Add(PersonToCreate);
-            _ApplicationDbContext.SaveChanges();
+            await _Repository.CreateAsync<Person>(PersonToCreate);
             return Created($"/get-person/{PersonToCreate.ID}", PersonToCreate);
             //return Ok(PersonToCreate);
         }
         [HttpPut("modify/{ID}")]
-        public ActionResult<Person> ModifyPerson(int ID, [FromBody] ModifyPersonBindingModel BindingModel)
+        public async Task<ActionResult<Person>> ModifyPerson(int ID, [FromBody] ModifyPersonBindingModel BindingModel)
         {
             var _Person = _ApplicationDbContext.Persons.FirstOrDefault(opt => opt.ID == ID);
             if (_Person != null)
@@ -67,7 +68,7 @@ namespace WebAPIDemo.Controllers
                 _Person.Phone = BindingModel.Phone;
                 _Person.EmailAddress = BindingModel.EmailAddress;
                 _Person.Address = BindingModel.Address;
-                _ApplicationDbContext.SaveChanges();
+                await _Repository.UpdateAsync<Person>(_Person);
                 return Ok(_Person);
             }
             else
@@ -76,12 +77,11 @@ namespace WebAPIDemo.Controllers
             }
         }
         [HttpDelete("delete/{ID}")]
-        public ActionResult Delete(int ID)
+        public async Task<ActionResult> Delete(int ID)
         {
-            var _Person = _ApplicationDbContext.Persons.FirstOrDefault(opt => opt.ID == ID);
+            var _Person=await _Repository.FindById<Person>(ID);
             if (_Person != null){
-                _ApplicationDbContext.Persons.Remove(_Person);
-                _ApplicationDbContext.SaveChanges();
+              await _Repository.DeleteAsync<Person>(_Person);
                 return NoContent();
             }
             else
