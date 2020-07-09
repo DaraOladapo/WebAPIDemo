@@ -28,8 +28,7 @@ namespace WebAPIDemo
         public void ConfigureServices(IServiceCollection services)
         {
             services.AddDbContext<ApplicationDbContext>(
-                option => option.UseSqlServer(Configuration.GetConnectionString("DefaultConnection")));
-            services.AddScoped<IRepository, Repository<ApplicationDbContext>>();
+                options=>options.UseSqlServer(Configuration.GetConnectionString("DefaultConnection")));
             services.AddControllers();
         }
 
@@ -46,7 +45,7 @@ namespace WebAPIDemo
             app.UseRouting();
 
             dbContext.Database.Migrate();
-
+            
             app.UseAuthorization();
 
             app.UseEndpoints(endpoints =>

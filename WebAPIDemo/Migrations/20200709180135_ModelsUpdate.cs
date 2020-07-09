@@ -2,7 +2,7 @@
 
 namespace WebAPIDemo.Migrations
 {
-    public partial class ModelToInt : Migration
+    public partial class ModelsUpdate : Migration
     {
         protected override void Up(MigrationBuilder migrationBuilder)
         {

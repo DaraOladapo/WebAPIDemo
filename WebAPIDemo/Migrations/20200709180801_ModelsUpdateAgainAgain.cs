@@ -2,30 +2,28 @@
 
 namespace WebAPIDemo.Migrations
 {
-    public partial class MyPeople : Migration
+    public partial class ModelsUpdateAgainAgain : Migration
     {
         protected override void Up(MigrationBuilder migrationBuilder)
         {
             migrationBuilder.CreateTable(
-                name: "MyPeoples",
+                name: "OtherPeople",
                 columns: table => new
                 {
                     ID = table.Column<int>(nullable: false)
                         .Annotation("SqlServer:Identity", "1, 1"),
-                    FirstName = table.Column<string>(nullable: true),
-                    LastName = table.Column<string>(nullable: true),
-                    EmailAddress = table.Column<string>(nullable: true)
+                    Name = table.Column<string>(nullable: true)
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_MyPeoples", x => x.ID);
+                    table.PrimaryKey("PK_OtherPeople", x => x.ID);
                 });
         }
 
         protected override void Down(MigrationBuilder migrationBuilder)
         {
             migrationBuilder.DropTable(
-                name: "MyPeoples");
+                name: "OtherPeople");
         }
     }
 }
