@@ -20,7 +20,17 @@ steps:
 - task: NuGetCommand@2
   inputs:
     restoreSolution: '$(solution)'
+- task: SonarCloudPrepare@1
+  inputs:
+    SonarCloud: 'SonarCloud'
+    organization: 'azdo-test'
+    scannerMode: 'MSBuild'
+    projectKey: 'azdo-test_azdo-test'
+    projectName: 'azdo-test'
 - task: SonarCloudAnalyze@1
+- task: SonarCloudPublish@1
+  inputs:
+    pollingTimeoutSec: '300'
 - task: VSBuild@1
   inputs:
     solution: '$(solution)'
